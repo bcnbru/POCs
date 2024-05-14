@@ -1,0 +1,16 @@
+[tool.poetry]
+name = "Gerador de Planos de Ensino"
+version = "0.1.0"
+description = ""
+authors = ["Ensino Einstein"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+numpy = "^1.18"
+streamlit = "^1.15"
+openai = "^1.6"
+streamlit-analytics = "^0.4"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
