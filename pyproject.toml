@@ -10,7 +10,3 @@ numpy = "^1.18"
 streamlit = "^1.15"
 openai = "^1.6"
 streamlit-analytics = "^0.4"
-
-[build-system]
-requires = ["poetry>=0.12"]
-build-backend = "poetry.masonry.api"
