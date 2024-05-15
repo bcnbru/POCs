@@ -3,6 +3,8 @@
 # Import from standard library
 import logging
 
+from pathlib import Path
+
 # Import from 3rd party libraries
 import streamlit as st
 import streamlit.components.v1 as components
@@ -162,7 +164,8 @@ st.title("Gerador de Planos de Ensino")
 app, sobre, abordagem= st.tabs(["Gerador", "Sobre essa POC", "Abordagem técnica"])
 
 with sobre:
-    with open("planos-ensino/pages/briefing_planos_de_ensino.md", "r") as file:
+    script_dir = Path(__file__).parent.absolute()
+    with open(f"{script_dir}/briefing_planos_de_ensino.md", "r") as file:
         briefing = file.read()
     st.markdown(briefing)
 
