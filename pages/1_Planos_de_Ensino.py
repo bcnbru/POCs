@@ -154,34 +154,61 @@ if "n_requests" not in st.session_state:
 #     </style>""",
 #     unsafe_allow_html=True,
 # )
-
+    
 # Render Streamlit page
 streamlit_analytics.start_tracking()
 st.title("Gerador de Planos de Ensino")
 
-col1, col2 = st.columns(2)
+app, sobre, abordagem= st.tabs(["Gerador", "Sobre essa POC", "Abordagem técnica"])
 
-with col1:
-    curso = st.text_input(label="Curso", placeholder="Informe o nome do curso")
-    objetivos = st.text_area(label="Objetivos", placeholder="Descreva os principais objetivos do curso")
-with col2:
-    disciplinas = st.text_area(label="Disciplinas", placeholder="Liste as disciplinas do curso")
-    bibliografia = st.text_area(label="Bibliografia", placeholder="Liste a bibliografia do curso")
+with sobre:
+    with open("planos-ensino/pages/briefing_planos_de_ensino.md", "r") as file:
+        briefing = file.read()
+    st.markdown(briefing)
 
-st.button(
-    label="Gerar Plano de Ensino",
-    type="primary",
-    on_click=generate_text,
-    args=[curso, objetivos, disciplinas, bibliografia]
-)
+with abordagem:
+    abordagem_texto = """### Abordagem Técnica \n
+O autor irá inserir apenas as informações básicas, em poucos campos definidos. \n
+Iremos interpolar as informações fornecidas pelo autor com o template de plano de Ensino utilzado atualmente em uma instrução (prompt) que será enviada para um LLM.\n
+Iremos comparar a qualidade dos planos gerados por dois modelos: gpt3.5 e gpt4
+    """
+    st.markdown(abordagem_texto)
+    with st.expander("Template de Plano de Ensino"):
+        st.markdown(template_plano)
+    with st.expander("Prompt completo"):
+        prompt_texto = """{template_plano}\n\n
+Usando o template acima crie um plano de ensino formatado em markdown e usando as informações fornecidas abaixo:\n
+Curso: {curso}\n
+Objetivos: {objetivos}\n
+Disciplinas: {disciplinas}\n
+Bibliografia: {bibliografia}\n\n
+            """
+        st.markdown(prompt_texto)
 
-st.markdown("""---""")
-text_spinner_placeholder = st.empty()
-if st.session_state.text_error:
-    st.error(st.session_state.text_error)
+with app:
+    col1, col2 = st.columns(2)
 
-if st.session_state.plano:
-    st.markdown(st.session_state.plano)
+    with col1:
+        curso = st.text_input(label="Curso", placeholder="Informe o nome do curso")
+        objetivos = st.text_area(label="Objetivos", placeholder="Descreva os principais objetivos do curso")
+    with col2:
+        disciplinas = st.text_area(label="Disciplinas", placeholder="Liste as disciplinas do curso")
+        bibliografia = st.text_area(label="Bibliografia", placeholder="Liste a bibliografia do curso")
+
+    st.button(
+        label="Gerar Plano de Ensino",
+        type="primary",
+        on_click=generate_text,
+        args=[curso, objetivos, disciplinas, bibliografia]
+    )
+
+    st.markdown("""---""")
+    text_spinner_placeholder = st.empty()
+    if st.session_state.text_error:
+        st.error(st.session_state.text_error)
+
+    if st.session_state.plano:
+        st.markdown(st.session_state.plano)
 
 
 streamlit_analytics.stop_tracking()
