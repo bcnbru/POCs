@@ -2,13 +2,12 @@
 
 # Import from standard library
 import logging
-
 from pathlib import Path
 
 # Import from 3rd party libraries
 import streamlit as st
-import streamlit.components.v1 as components
 import streamlit_analytics
+import streamlit.components.v1 as components
 
 # Import modules
 import oai
@@ -92,7 +91,7 @@ Aos alunos que não obtiverem o aproveitamento necessário, será oferecida uma 
 """
 
 # Define functions
-def generate_text(curso, objetivos, disciplinas, bibliografia):
+def generate_text(curso, objetivos, disciplinas, bibliografia, responsavel, instrucoes):
     """Gerar Plano de Ensino"""
     if st.session_state.n_requests >= 5:
         st.session_state.text_error = "Too many requests. Please wait a few seconds."
@@ -111,9 +110,11 @@ def generate_text(curso, objetivos, disciplinas, bibliografia):
             prompt = f"""{template_plano}\n\n
             Usando o template acima crie um plano de ensino formatado em markdown e usando as informações fornecidas abaixo:\n
             Curso: {curso}\n
+            Responsáveis: {responsavel}\n
             Objetivos: {objetivos}\n
             Disciplinas: {disciplinas}\n
             Bibliografia: {bibliografia}\n\n
+            Instruções: {instrucoes}\n\n
             """
 
             openai = oai.Openai()
@@ -127,12 +128,16 @@ def generate_text(curso, objetivos, disciplinas, bibliografia):
                 st.session_state.text_error = ""
                 st.session_state.n_requests += 1
                 streamlit_analytics.start_tracking()
-                st.session_state.plano = (
+                st.session_state.plano3 = (
                     openai.complete(prompt=prompt).strip().replace('"', "")
+                )
+                st.session_state.plano4 = (
+                    openai.complete(prompt=prompt,model="gpt-4o").strip().replace('"', "")
                 )
                 logging.info(
                     f"Curso: {curso}\n"
-                    f"Plano: {st.session_state.plano}"
+                    f"Plano3: {st.session_state.plano3}"
+                    f"Plano4: {st.session_state.plano4}"
                 )
 
 # Configure Streamlit page and state
@@ -140,6 +145,10 @@ st.set_page_config(page_title="Gerador de Plano de Ensino")
 
 if "plano" not in st.session_state:
     st.session_state.plano = ""
+if "plano3" not in st.session_state:
+    st.session_state.plano3 = ""
+if "plano4" not in st.session_state:
+    st.session_state.plano4 = ""
 if "text_error" not in st.session_state:
     st.session_state.text_error = ""
 if "n_requests" not in st.session_state:
@@ -171,22 +180,21 @@ with sobre:
 
 with abordagem:
     abordagem_texto = """### Abordagem Técnica \n
-O autor irá inserir apenas as informações básicas, em poucos campos definidos. \n
-Iremos interpolar as informações fornecidas pelo autor com o template de plano de Ensino utilzado atualmente em uma instrução (prompt) que será enviada para um LLM.\n
-Iremos comparar a qualidade dos planos gerados por dois modelos: gpt3.5 e gpt4
+O responsável pelo curso irá inserir em poucos campos apenas as informações básicas do curso. Ele não precisará se preocupar com o estilo, formatação ou outros detalhes. \n
+Iremos interpolar as informações fornecidas por ele com o template de plano de Ensino utilzado atualmente em uma instrução (prompt) que será enviada para um LLM. O LLM irá criar um plano de ensino usando as informações fornecidas pelo responsável do curso e ajustando questões estilisticas conforme instruções contidas no template.\n
+Iremos comparar a qualidade dos planos gerados por dois modelos: gpt3.5 e gpt4\n
+#### Prompt Completo\n
+    {template_plano}\n
+    Usando o template acima crie um plano de ensino formatado em markdown e usando as informações fornecidas abaixo:\n
+    Curso: {curso}\n
+    Objetivos: {objetivos}\n
+    Disciplinas: {disciplinas}\n
+    Bibliografia: {bibliografia}\n\n
     """
     st.markdown(abordagem_texto)
+    st.markdown("#### Template de Plano de Ensino")
     with st.expander("Template de Plano de Ensino"):
         st.markdown(template_plano)
-    with st.expander("Prompt completo"):
-        prompt_texto = """{template_plano}\n\n
-Usando o template acima crie um plano de ensino formatado em markdown e usando as informações fornecidas abaixo:\n
-Curso: {curso}\n
-Objetivos: {objetivos}\n
-Disciplinas: {disciplinas}\n
-Bibliografia: {bibliografia}\n\n
-            """
-        st.markdown(prompt_texto)
 
 with app:
     col1, col2 = st.columns(2)
@@ -194,7 +202,9 @@ with app:
     with col1:
         curso = st.text_input(label="Curso", placeholder="Informe o nome do curso")
         objetivos = st.text_area(label="Objetivos", placeholder="Descreva os principais objetivos do curso")
+        instrucoes = st.text_area(label="Instruções", placeholder="Descreva informações gerais durante a criação do plano, como termos-chave ou tópicos importantes por exemplo")
     with col2:
+        responsavel = st.text_input(label="Nome dos responsáveis", placeholder="Informe o nome dos responsáveis pelo curso")
         disciplinas = st.text_area(label="Disciplinas", placeholder="Liste as disciplinas do curso")
         bibliografia = st.text_area(label="Bibliografia", placeholder="Liste a bibliografia do curso")
 
@@ -202,16 +212,27 @@ with app:
         label="Gerar Plano de Ensino",
         type="primary",
         on_click=generate_text,
-        args=[curso, objetivos, disciplinas, bibliografia]
+        args=[curso, objetivos, disciplinas, bibliografia, responsavel, instrucoes]
     )
 
     st.markdown("""---""")
+
     text_spinner_placeholder = st.empty()
+    
     if st.session_state.text_error:
         st.error(st.session_state.text_error)
 
-    if st.session_state.plano:
-        st.markdown(st.session_state.plano)
+    if st.session_state.plano3 and st.session_state.plano4:
+        gpt3, gpt4, avaliacao = st.tabs(["GPT3.5", "GPT4", "Avalie o resultado"])
+
+        with avaliacao:
+            components.html('<iframe src="https://docs.google.com/forms/d/e/1FAIpQLScbYXiQwePPE1mO24IB-zGcrZ73HUrBpmHLBp7bX6T8pGRxQA/viewform?embedded=true" width="640" height="1000" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>',height=1500)
+        
+        with gpt3:
+            st.markdown(st.session_state.plano3)
+        
+        with gpt4:
+            st.markdown(st.session_state.plano4)
 
 
 streamlit_analytics.stop_tracking()
