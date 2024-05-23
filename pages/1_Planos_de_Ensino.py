@@ -180,16 +180,26 @@ with sobre:
 
 with abordagem:
     abordagem_texto = """### Abordagem Técnica \n
-O responsável pelo curso irá inserir em poucos campos apenas as informações básicas do curso. Ele não precisará se preocupar com o estilo, formatação ou outros detalhes. \n
-Iremos interpolar as informações fornecidas por ele com o template de plano de Ensino utilzado atualmente em uma instrução (prompt) que será enviada para um LLM. O LLM irá criar um plano de ensino usando as informações fornecidas pelo responsável do curso e ajustando questões estilisticas conforme instruções contidas no template.\n
-Iremos comparar a qualidade dos planos gerados por dois modelos: gpt3.5 e gpt4\n
+
+#### Stack Tecnológico
+ - Modelo de Linguagem de Grande Escala (LLM): Utilizado para gerar o conteúdo dos planos de ensino.
+ - Streamlit: Usado para desenvolver uma interface amigável para inserção de informações e exibição dos resultados.
+ - Python: A principal linguagem de programação usada para integrar o LLM e o Streamlit.
+
+#### Fluxo de Processamento
+**Input do Usuário:** O responsável pelo curso insere em poucos campos as informações básicas do curso. Ele não precisará se preocupar com o estilo, formatação ou outros detalhes. \n
+**Processamento de Dados:** As informações fornecidas são interpoladas com o template de plano de Ensino utilzado atualmente em uma instrução (prompt) que é enviada para um LLM. 
+O LLM cria um plano de ensino usando as informações fornecidas pelo responsável do curso e ajustando questões estilisticas conforme instruções contidas no template.\n
+**Output:** Os planos de ensino gerados pelo modelo GPT-3.5 e GPT-4o são exibidos na interface do Streamlit.\n
 #### Prompt Completo\n
     {template_plano}\n
     Usando o template acima crie um plano de ensino formatado em markdown e usando as informações fornecidas abaixo:\n
     Curso: {curso}\n
+    Responsáveis: {responsavel}\n
     Objetivos: {objetivos}\n
     Disciplinas: {disciplinas}\n
-    Bibliografia: {bibliografia}\n\n
+    Bibliografia: {bibliografia}\n
+    Instruções: {instrucoes}\n\n
     """
     st.markdown(abordagem_texto)
     st.markdown("#### Template de Plano de Ensino")
@@ -202,7 +212,7 @@ with app:
     with col1:
         curso = st.text_input(label="Curso", placeholder="Informe o nome do curso")
         objetivos = st.text_area(label="Objetivos", placeholder="Descreva os principais objetivos do curso")
-        instrucoes = st.text_area(label="Instruções", placeholder="Descreva informações gerais durante a criação do plano, como termos-chave ou tópicos importantes por exemplo")
+        instrucoes = st.text_area(label="Instruções adicionais", placeholder="Descreva instruções adicionais para a criação do plano, como por exemplo termos-chave ou tópicos importantes que devem ser incluídos")
     with col2:
         responsavel = st.text_input(label="Nome dos responsáveis", placeholder="Informe o nome dos responsáveis pelo curso")
         disciplinas = st.text_area(label="Disciplinas", placeholder="Liste as disciplinas do curso")
